@@ -1,0 +1,26 @@
+WebSocket HANDSHAKING /ws/chat/aaa/AnonymousUser/ [127.0.0.1:32814]
+WebSocket CONNECT /ws/chat/aaa/AnonymousUser/ [127.0.0.1:32814]
+['__call__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_sync', 'accept', 'as_asgi', 'base_send', 'channel_layer', 'channel_layer_alias', 'channel_name', 'channel_receive', 'chat_message', 'close', 'connect', 'disconnect', 'dispatch', 'group_name', 'groups', 'receive', 'scope', 'send', 'user_name', 'websocket_connect', 'websocket_disconnect', 'websocket_receive']
+
+WebSocket CONNECT /ws/chat/f/AnonymousUser/ [127.0.0.1:36472]
+
+self.scope
+
+dict_keys(['type', 'path', 'raw_path', 'headers', 'query_string', 'client', 'server', 'subprotocols', 'asgi', 'cookies', 'session', 'user', 'path_remaining', 'url_route'])
+
+{
+'type': 'websocket', 
+'path': '/ws/chat/f/AnonymousUser/', 
+'raw_path': b'/ws/chat/f/AnonymousUser/', 
+'headers': 
+	[(b'host', b'localhost:8000'), (b'user-agent', b'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0'), (b'accept', b'*/*'), (b'accept-language', b'en-US,en;q=0.5'), (b'accept-encoding', b'gzip, deflate'), (b'sec-websocket-version', b'13'), (b'origin', b'http://localhost:8000'), (b'sec-websocket-extensions', b'permessage-deflate'), (b'sec-websocket-key', b'heUX+PvjOQpCWlZoxQMNUA=='), (b'connection', b'keep-alive, Upgrade'), (b'cookie', b'csrftoken=TXq10RYgnCmjjDQEfLrc3a6kYZLfQWNQ6TjEV28HCUN825BYvgFhKjpGvZHIDzSo; sessionid=6id0uy1ilu8ewldz44pjjzlj95u432ki'), (b'pragma', b'no-cache'), (b'cache-control', b'no-cache'), (b'upgrade', b'websocket')], 
+'query_string': b'', 
+'client': ['127.0.0.1', 36472], 
+'server': ['127.0.0.1', 8000], 
+'subprotocols': [], 
+'asgi': {'version': '3.0'}, 
+'cookies': {'csrftoken': 'TXq10RYgnCmjjDQEfLrc3a6kYZLfQWNQ6TjEV28HCUN825BYvgFhKjpGvZHIDzSo', 'sessionid': '6id0uy1ilu8ewldz44pjjzlj95u432ki'}, 
+'session': <django.utils.functional.LazyObject object at 0x7fed4d567970>, 
+'user': <channels.auth.UserLazyObject object at 0x7fed4d567910>, 
+'path_remaining': '', 
+'url_route': {'args': (), 'kwargs': {'group_name': 'f', 'user_name': 'AnonymousUser'}}}

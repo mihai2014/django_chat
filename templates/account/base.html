@@ -1,0 +1,173 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+<!DOCTYPE html>
+<html>
+  <head>    
+    <title>{% block head_title %}{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'chat/favicon.ico' %}"/>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">    
+    <link rel="stylesheet" href="{% static 'chat/css/base.css' %}"/>
+    {% block extra_head %}
+    {% endblock %}
+  </head>
+
+
+
+  <body>
+
+    {% block body %}
+
+    <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
+      <a class="navbar-brand" href="#">
+        <img src="{% static 'chat/chat.jpg' %}" alt="Chat" style="width:35px;">
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="collapsibleNavbar">
+        <ul class="navbar-nav">
+
+          <li class="nav-item navlink"><a href="{% url 'chat' %}">Chat</a></li>
+
+          {% if user.is_authenticated %}
+          <li class="nav-item navlink"><a href="{% url 'account_email' %}">Change E-mail</a></li>
+          <li class="nav-item navlink"><a href="{% url 'account_logout' %}">Sign Out</a></li>
+          {% else %}
+          <li class="nav-item navlink"><a href="{% url 'account_login' %}">Sign In</a></li>
+          <li class="nav-item navlink"><a href="{% url 'account_signup' %}">Sign Up</a></li>
+          {% endif %}
+
+          <li class="navlink">user: {{ user }}-<span id = "user_id"></span></li>
+        </ul>
+      </div>  
+    </nav>
+
+    
+
+    {% if chat == "True" %}
+
+    <div class="container container-def">     
+      <div class="row row-def">
+        <div class="col-md-6 main-bs-cols">
+          <div class="inner-cols-border">
+
+
+
+            <ul class="nav nav-tabs">
+              <li class="nav-item">
+                <a class="nav-link active" href="#" id="select_tab_groups">Groups</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" id="select_tab_users">Users</a>
+              </li>
+              <!--
+              <li class="nav-item">
+                <a class="nav-link" href="#">Summary</a>
+              </li>
+            -->
+            </ul> 
+
+            <div id="tab_groups">
+              <p>What chat group would you like to enter?<p>              
+              <label for="">New group: </label>
+              <input id="group-name-input" type="text" size="15">
+              <label class="switch adjust">
+                <input type="checkbox" id="group-name-select" disabled=true>
+                <span class="slider round"></span>
+              </label>
+              <br>
+              <label for="">Select group: </label>
+              <select id="groups">
+                <!--<option value="none">none</option>-->
+              </select>            
+            </div>
+            
+            
+            <div id="tab_users" style="visibility: hidden;">
+              <p>Users ... (not ready)</p>
+              <select id="users_auth"></select>
+              <select id="users_anonymous"></select>
+            </div>
+
+
+          </div>
+        </div>
+
+        <div class="col-md-6 main-bs-cols">
+          <div class="inner-cols-border">
+
+            <textarea id="chat-display" cols="32" rows="11"></textarea><br>
+            <input id="input" type="text" size="32"><br>
+            <input id="submit" type="button" value="Send">            
+
+        </div>
+      </div>
+    </div>          
+  </div>     
+
+    {% elif chat == 'welcome' %}
+
+    <div class="container container-def">
+      <div class="row row-def">
+        <div class="col-md-12 main-bs-cols">
+          <div class="inner-cols-border">
+            <h1 class="text-center">Welcome to chat - select option from menu bar</h1>
+            <h3 class="text-center">You can comunicate as anonymous user or as a logged user.</h3>
+          </div>
+        </div>
+      </div>
+    </div>  
+    {% else %}
+
+    <div class="container container-def">
+      <div class="row row-def">
+        <div class="col-md-12 main-bs-cols">
+          <div class="inner-cols-border">
+            
+            {% if messages %}
+            <div>
+              <strong>Messages:</strong>
+              <ul>
+                {% for message in messages %}
+                <li>{{message}}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}            
+
+            {% block content %}
+            {% endblock content %}          
+            
+          </div>
+        </div>
+
+    {% endif %}  
+
+    {% endblock body %}
+
+      </div>
+    </div>
+
+    <div class="footer">
+      Let's chat!
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  
+    {% if chat == "True" %}
+    <script>const userName = '{{ user }}';</script>
+    <script src="{% static 'chat/js/base.js' %}"></script>
+    <script src="{% static 'chat/js/tabs.js' %}"></script>
+    {% endif %}
+
+    {% block extra_body %}
+    {% endblock %}
+
+  </body>
+</html>

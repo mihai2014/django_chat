@@ -1,0 +1,2 @@
+https://learndjango.com/tutorials/django-log-in-email-not-username
+https://learndjango.com/tutorials/django-custom-user-model

@@ -1,0 +1,24 @@
+1)Redis server
+
+yum install redis              # on Fedora
+sudo systemctl enable redis
+
+2) Python method redis-server install
+
+pip install redis-server
+
+In a python terminal:
+>>> import redis_server
+>>> redis_server.REDIS_SERVER_PATH 
+/home/mihai/all/data/work2020/env/lib64/python3.9/site-packages/redis_server/bin/redis-server
+
+In a shell terminal start 'redis-server' as a background process:
+/home/mihai/all/data/work2020/env/lib64/python3.9/site-packages/redis_server/bin/redis-server &
+
+Verify:
+
+ss -an | grep 6379
+
+or 
+
+python verif_redis.py
