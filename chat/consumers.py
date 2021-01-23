@@ -1,4 +1,3 @@
-# chat/consumers.py
 import asyncio
 import json
 import time
@@ -7,28 +6,16 @@ import pytz
 
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
 
+#call synchronous code from an asynchronous consumer
+from asgiref.sync import sync_to_async, async_to_sync
+from channels.db import database_sync_to_async
+
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 
-groups = []
-broadcast_socket = None
-
-class clock(AsyncWebsocketConsumer):
-    async def connect(self):
-        await self.accept()
-        await self.start_periodic_task()
-
-    async def start_periodic_task(self):
-        while True:
-            bucharest = pytz.timezone('Europe/Bucharest')
-            now_local = datetime.now(tz=bucharest)
-            current_time = now_local.strftime("%H:%M:%S - %d/%m/%Y -") + " Europe/Bucharest"
-            #now = datetime.now()
-            #current_time = now.strftime("%H:%M:%S")
-            await self.send(text_data=json.dumps({
-               'message': current_time
-            }))
-            await asyncio.sleep(1)
-
+from django.contrib.auth.models import User
+from django.contrib.sessions.models import Session
+from accounts.models import CustomUser
+from django.utils import timezone
 
 def get_unique(data):
     norepeat = set()
@@ -36,19 +23,13 @@ def get_unique(data):
         norepeat.add(n)
     return norepeat
 
-
-def set2dict(set_val):
+def list2dict(set_val):
     mydict = {}
     n = 1
     for v in set_val:
         mydict[n] = v
         n +=1
-    return mydict    
-
-from django.contrib.auth.models import User
-from django.contrib.sessions.models import Session
-from accounts.models import CustomUser
-from django.utils import timezone
+    return mydict 
 
 def get_all_logged_in_users():
     # Query all non-expired sessions
@@ -67,43 +48,24 @@ def get_all_logged_in_users():
     # but 'auth.User' has been swapped for 'accounts.CustomUser' in our project
     users = CustomUser.objects.filter(id__in=uid_list)
 
-    return users
+    mydict = {}
+    n = 1
+    for user in users:
+        mydict[n] = user.email
+        n +=1        
 
+    return mydict
 
-
-def send_logged_users(sender, user, request, **kwargs):
-
-    #users_dict = {}
-    #users = get_all_logged_in_users()
-    #for user in users:
-    #    users_dict[user.pk] = user.username
-    #print(users_dict)
-
-    print("here-here", sender,user)
-    ret = get_all_logged_in_users()
-    print(ret)
-    print("B SOCKET",broadcast_socket)
-
-#    #send to channel: update lists of all opened channels and users online
-#    await broadcast_socket.channel_layer.group_send(
-#        "all_users_group",
-#        {
-#            'type': 'broadcast_connections',
-#            'groups': json.dumps(groups_dict),
-#            'users': '{}',
-#        }
-#    )    
-
-
-user_logged_in.connect(send_logged_users)
-user_logged_out.connect(send_logged_users)
-
+auth_users = []
+anonymous_users = []
+groups = []
+broadcast_socket = None
 
 class broadcast(AsyncWebsocketConsumer):
+    global groups
+    global anonymous_users
     
     async def connect(self):
-
-        global groups
 
         await self.channel_layer.group_add(
             "all_users_group",
@@ -112,74 +74,109 @@ class broadcast(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        users1 = await sync_to_async(get_all_logged_in_users)()
+
         self.socket_port = self.scope['client'][1]
+
+        anonymous_users.append(self.socket_port)
+        #print(anonymous_users)
+
+        anonymous_users_dict = list2dict(anonymous_users)
+        print("anonymous users",anonymous_users_dict)   
 
         global broadcast_socket
         broadcast_socket = self
-        print(broadcast_socket)
+        print("broadcast socket",broadcast_socket)
 
-        groups_dict = set2dict(get_unique(groups))  
+        groups_dict = list2dict(get_unique(groups))  
         print(groups_dict)
 
-        #when open page, (no channel/user selected yet): update data by broadcast socket
+        #when open page, (no channel/user selected yet !): update data by broadcast socket
         await self.send(text_data=json.dumps({
             'socket_port' : self.socket_port, 
             'groups': json.dumps(groups_dict),
-            'users1': '{}',
-        }))        
+            'users1': json.dumps(users1),  #'{"1":"none"}',
+            #'users2': json.dumps(anonymous_users_dict), 
+        }))
 
-    #this will be launched from chat consumer!
+        #broadcast anonymous users
+        await self.channel_layer.group_send(
+            "all_users_group",
+            {
+                'type': 'broadcast_connections',
+                'users2': json.dumps(anonymous_users_dict),
+            }
+        )  
+
+    async def disconnect(self, close_code):
+        # Leave group
+        await self.channel_layer.group_discard(
+            "all_users_group",
+            self.channel_name
+        )   
+
+        anonymous_users.remove(self.socket_port)  
+        print(anonymous_users) 
+        anonymous_users_dict = list2dict(anonymous_users)        
+
+        #broadcast anonymous users
+        await self.channel_layer.group_send(
+            "all_users_group",
+            {
+                'type': 'broadcast_connections',
+                'users2': json.dumps(anonymous_users_dict),
+            }
+        )
+
+    #this will be launched also from chat consumer!
     async def broadcast_connections(self, event):
         msg = {}
-        groups = event['groups']
-        users1 = event['users1']
-        users2 = event['users2']
-        if(groups != {}): msg['groups'] = groups
-        if(users1 != {}): msg['users1'] = users1
-        if(users2 != {}): msg['users2'] = users2
-        #socket_port = event['socket_port']
-        print(groups)
+        if 'groups' in event:
+            groups = event['groups']
+            if(groups != {}): msg['groups'] = groups
+        if 'users1' in event:    
+            users1 = event['users1']
+            if(users1 != {}): msg['users1'] = users1
+        if 'users2' in event: 
+            users2 = event['users2']
+            if(users2 != {}): msg['users2'] = users2
+                    
         print(msg)
-        #await self.send(text_data=json.dumps({
-        #    'groups' : groups, 
-        #    'users1' : users1,
-        #    'users2' : users2,
-        #}))
+
         await self.send(text_data=json.dumps(
             msg
-        ))    
+        ))
+
+
 
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
-    
-    async def connect(self):
-        global groups
-        global broadcast_socket
-        self.groups = groups
+    global groups
+    global broadcast_socket
 
+    async def connect(self):
         self.group_name = self.scope['url_route']['kwargs']['group_name']
         self.user_name = self.scope['url_route']['kwargs']['user_name']
-        #self.channel_name = 'chat_%s' % self.group_name
 
-        groups.append(self.group_name);    
-
-        # Join group
+        # Join room group
         await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
         )
+
+        groups.append(self.group_name)
 
         await self.accept()
 
         #send welcome to user
         await self.send(text_data=json.dumps({
            "message": "Welcome: you are connected to group - " + self.group_name
-        }))        
-        
+        }))    
+
         #using broadcast port as identification for anonymous users (groups and users update)
         self.b_socket_port = broadcast_socket.scope['client'][1]
-        groups_dict = set2dict(get_unique(groups))  
+        groups_dict = list2dict(get_unique(groups))  
 
         print(groups_dict)
         
@@ -192,29 +189,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'users1': '{}',
                 'users2': '{}',
             }
-        )        
-
+        )                   
 
     async def disconnect(self, close_code):
-        # Leave room group
+        # Leave group channel
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
         )
-        groups.remove(self.group_name);
-        groups_dict = set2dict(get_unique(groups))
-        print(groups_dict)
-
-        await broadcast_socket.channel_layer.group_send(
-            "all_users_group",
-            {
-                'type': 'broadcast_connections',
-                'groups': json.dumps(groups_dict),
-                'users1': '{}',
-                'users2': '{}',
-            }
-        )          
-
+           
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -229,7 +212,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    # Send message to group
+    # Send message to room group
     async def chat_message(self, event):
         message = event['message']
 
@@ -239,26 +222,3 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'socket_port': self.b_socket_port
         }))
 
-       
-
-
-
-
-
-#testing 
-#class update_groups(AsyncWebsocketConsumer):
-#    
-#    async def connect(self):
-#        await self.accept()
-#        await self.start_periodic_task()
-#
-#    async def start_periodic_task(self):
-#        global groups
-#                
-#        while True:
-#            groups_dict = set2dict(groups)
-#            #await self.send(text_data=json.dumps({
-#            #   '1': "One", '2': "Two", '3': "Three"
-#            #}))
-#            await self.send(text_data=json.dumps( groups_dict ))
-#            await asyncio.sleep(5)

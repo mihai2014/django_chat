@@ -159,11 +159,18 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 #host smtp
 import sys
 
+try:
+    sys.path.append("/home/mihai/all/data/work2020/1_hosterion/")
+except:
+    sys.exit
+else:    
+    sys.path.append("/home/mihaicor/chat/")
+    from mysterion import mail_pass
 
 EMAIL_HOST = 'mail.mihaicorciu.ro'
 EMAIL_PORT = 465
 EMAIL_HOST_USER = 'django@mihaicorciu.ro'
-EMAIL_HOST_PASSWORD = 'mail_pass'
+EMAIL_HOST_PASSWORD = mail_pass
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 
@@ -195,3 +202,4 @@ CHANNEL_LAYERS = {
         },
     },
 }
+

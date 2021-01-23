@@ -1,15 +1,13 @@
-/*groups/users/etc list select update*/ 
+const display = document.querySelector('#chat-display');
+const message_input = document.querySelector('#input');
+const submit_button  = document.querySelector('#submit');
 
 const groups_select = document.getElementById("groups");
 const switch_button = document.getElementById("group-name-select");
 const group_name_input = document.querySelector('#group-name-input');
 
-//update active groups/users/etc list (for incoming broadcast connexions data given by the server)
-const dataSocket = new WebSocket(
-    'ws://'
-    + window.location.host
-    + '/ws/data/'
-);
+const users_auth = document.getElementById("users_auth");
+const users_anonymous = document.getElementById("users_anonymous");
 
 
 function removeOptions(selectElement) {
@@ -18,9 +16,9 @@ function removeOptions(selectElement) {
        console.log(i, L); 
        selectElement.remove(i);
     }
- }
+}
 
- function addOptions(selectElement,data){
+function addOptions(selectElement,data){
     var result = Object.keys(data);
     for (var i = 0; i < result.length; i++) {
         key = result[i];
@@ -31,15 +29,22 @@ function removeOptions(selectElement) {
         opt.innerHTML = val;
         selectElement.appendChild(opt);        
     }
- }
-
+}
 
 function init_select(target,data){
     removeOptions(target);
     addOptions(target,data);    
 }
 
-dataSocket.onmessage = function(e) {  //console.log(e.data)
+//update active groups/users/etc list (for incoming broadcast connexions data given by the server)
+/* begin data socket */
+const dataSocket = new WebSocket(
+    'ws://'
+    + window.location.host
+    + '/ws/data/'
+);
+
+dataSocket.onmessage = function(e) {  //console.log()
     const data = JSON.parse(e.data);
     console.log(data);
     if (data.hasOwnProperty('socket_port')) {
@@ -53,9 +58,11 @@ dataSocket.onmessage = function(e) {  //console.log(e.data)
     }
     if (data.hasOwnProperty('users1')) {    
         var users1 = JSON.parse(data['users1']); 
+        init_select(users_auth,users1);
     }
     if (data.hasOwnProperty('users2')) {    
-        var users1 = JSON.parse(data['users2']); 
+        var users2 = JSON.parse(data['users2']); 
+        init_select(users_anonymous,users2);
     }
 };
 
@@ -63,7 +70,7 @@ dataSocket.onclose = function(e) {
     alert("Connection closed! Reload page!");
 };
 
-/*end groups/users/etc list*/
+/* end data socket */
 
 /* new group defined => active switch */
 group_name_input.oninput = function(e){
@@ -76,6 +83,8 @@ group_name_input.oninput = function(e){
     }
 }
 /* */
+
+/* begin switch : connect/disconnect chat group channel */ 
 
 function switch_on(){  console.log("on")
    switch_button.checked = true; 
@@ -102,7 +111,8 @@ switch_button.onclick = function(e) {
         switch_off();
     }
 } 
-/* end */ 
+/* end switch */ 
+
 
 /* select group from list */
 
@@ -125,12 +135,8 @@ groups_select.onclick = function(e) {
   
 /* end */
 
-const display = document.querySelector('#chat-display');
-const message_input = document.querySelector('#input');
-const submit_button  = document.querySelector('#submit');
 
-/* chat */
-
+/* begin chat socket */
 function connect(groupName){
 
     const chatSocket = new WebSocket(
@@ -179,4 +185,4 @@ function connect(groupName){
 
     return chatSocket;    
 }
-/* end chat*/
+/* end chat socket */
