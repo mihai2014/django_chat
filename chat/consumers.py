@@ -61,6 +61,28 @@ anonymous_users = []
 groups = []
 broadcast_socket = None
 
+def send_logged_users(sender, user, request, **kwargs):
+
+    global broadcast_socket
+    print("broadcast socket:" ,broadcast_socket)
+
+    users1 = get_all_logged_in_users()
+    print("logged", users1)
+
+    broadcast_socket.channel_layer.group_send(
+        "all_users_group",
+        {
+            'type': 'broadcast_connections',
+            'users1': json.dumps(users1),
+            #'users2': json.dumps(anonymous_users_dict),
+        }
+    ) 
+
+
+
+user_logged_in.connect(send_logged_users)
+user_logged_out.connect(send_logged_users)
+
 class broadcast(AsyncWebsocketConsumer):
     global groups
     global anonymous_users
@@ -75,6 +97,7 @@ class broadcast(AsyncWebsocketConsumer):
         await self.accept()
 
         users1 = await sync_to_async(get_all_logged_in_users)()
+        print(users1)
 
         self.socket_port = self.scope['client'][1]
 
@@ -104,6 +127,7 @@ class broadcast(AsyncWebsocketConsumer):
             "all_users_group",
             {
                 'type': 'broadcast_connections',
+                'users1': json.dumps(users1),
                 'users2': json.dumps(anonymous_users_dict),
             }
         )  
@@ -119,11 +143,15 @@ class broadcast(AsyncWebsocketConsumer):
         print(anonymous_users) 
         anonymous_users_dict = list2dict(anonymous_users)        
 
+        users1 = await sync_to_async(get_all_logged_in_users)()
+        print(users1)
+
         #broadcast anonymous users
         await self.channel_layer.group_send(
             "all_users_group",
             {
                 'type': 'broadcast_connections',
+                'users1': json.dumps(users1),
                 'users2': json.dumps(anonymous_users_dict),
             }
         )

@@ -39,6 +39,12 @@
 
           <li class="navlink">user: {{ user }}-<span id = "user_id"></span></li>
         </ul>
+
+        <div class="collapse navbar-collapse justify-content-end">
+          <img id="state_img_connect" src="{% static 'chat/connect.png' %}" style="width:35px; display:inline;" alt= "state" >
+          <img id="state_img_disconnect" src="{% static 'chat/disconnect.png' %}" style="width:35px; display:none;" alt= "state" >
+        </div>
+
       </div>  
     </nav> 
     

@@ -9,6 +9,19 @@ const group_name_input = document.querySelector('#group-name-input');
 const users_auth = document.getElementById("users_auth");
 const users_anonymous = document.getElementById("users_anonymous");
 
+const state_img_disconnect = document.getElementById("state_img_disconnect");
+const state_img_connect = document.getElementById("state_img_connect");
+
+function connect_on(){
+    state_img_disconnect.style.display = "none";
+    state_img_connect.style.display = "inline";
+}
+
+function connect_off(){
+    state_img_disconnect.style.display = "inline";
+    state_img_connect.style.display = "none";
+}
+
 
 function removeOptions(selectElement) {
     var i, L = selectElement.options.length - 1;
@@ -51,6 +64,7 @@ dataSocket.onmessage = function(e) {  //console.log()
         var socket_port = JSON.parse(data['socket_port']);
         window.socket_port = socket_port;
         document.getElementById("user_id").innerHTML =  socket_port;
+        connect_on()
     }
     if (data.hasOwnProperty('groups')) {    
         var groups = JSON.parse(data['groups']); 
@@ -67,6 +81,7 @@ dataSocket.onmessage = function(e) {  //console.log()
 };
 
 dataSocket.onclose = function(e) {
+    connect_off()
     alert("Connection closed! Reload page!");
 };
 
